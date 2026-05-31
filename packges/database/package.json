@@ -3,31 +3,36 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
+
   "scripts": {
-    "db:generate": "dotenvx run -- prisma generate",
-    "db:migrate": "dotenvx run -- prisma migrate dev",
-    "db:push": "dotenvx run -- prisma db push",
-    "db:seed": "dotenvx run -- tsx prisma/seed.ts",
-    "db:studio": "dotenvx run -- prisma studio",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
     "build": "pnpm db:generate && tsc"
   },
+
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.0",
-    "@prisma/adapter-neon": "^7.8.0",
-    "@prisma/client": "^7.8.0"
+    "@neondatabase/serverless": "1.0.2",
+    "@prisma/adapter-neon": "6.16.3",
+    "@prisma/client": "6.16.3"
   },
+
   "devDependencies": {
-    "dotenv": "^16.4.5",
-    "prisma": "^7.8.0",
-    "tsx": "^4.20.6",
-    "typescript": "^5.0.0"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "dotenv": "16.6.1",
+    "prisma": "6.16.3",
+    "tsx": "4.20.6",
+    "typescript": "5.9.2"
   }
 }
