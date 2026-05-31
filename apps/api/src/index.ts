@@ -202,7 +202,7 @@ app.get("/api/activity-logs", async (req, res) => {
     const logs = await prisma.activityLog.findMany({
       take: 10,
       orderBy: {
-        createdAt: "desc",
+        timestamp: "desc",
       },
     });
     res.json(logs);
