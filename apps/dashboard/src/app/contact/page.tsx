@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, MessageSquare, Globe, ArrowRight } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] selection:bg-neutral-800 overflow-x-hidden">

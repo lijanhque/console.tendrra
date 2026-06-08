@@ -7,7 +7,6 @@ import { prisma } from "@repo/database";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { convertToModelMessages, generateText, stepCountIs, streamText } from "ai";
 import { z } from "zod";
-import { HfInference } from "@huggingface/inference";
 
 // Route Imports
 import webhookRouter from "./routes/webhooks.js";
@@ -59,7 +58,7 @@ app.get("/docs", (req, res) => {
   res.sendFile(path.join(process.cwd(), "docs.html"));
 });
 
-const hf = new HfInference(process.env.HUGGING_FACE_HUB_TOKEN);
+
 
 // Register Background Handlers
 registerJobHandler("WORKFLOW_EXECUTION", async (payload) => {
@@ -79,11 +78,22 @@ app.use(cors({
   origin: [
     "http://localhost:3024",
     "http://localhost:3000",
+    "https://glowing-lamp-q7vq9wg7g5pj24p9g-3001.app.github.dev",
     process.env.DASHBOARD_URL ?? "",
   ].filter(Boolean),
   credentials: true,
 }));
 app.use(auditLogger);
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    service: "tendrra-api",
+    version: "1.0.0",
+  });
+});
 
 // Modular Routes
 app.use("/api/webhooks", webhookRouter);
@@ -97,6 +107,17 @@ app.use("/api/users", userRouter);
 app.use("/api/agents", authenticate, agentRouter);
 app.use("/api/connectors", authenticate, connectorRouter);
 app.use("/api/mcp", mcpRouter);
+
+// Test Logs Mock Data Route
+app.get("/api/test-logs", (req, res) => {
+  res.json([
+    { id: "a7b3c9d1", agent: "Agent-1", task: "Task execution complete", status: "Success", time: "10:23:45", duration: "125ms" },
+    { id: "e2f5a8b4", agent: "Agent-3", task: "Processing request", status: "Running", time: "10:23:42", duration: "89ms" },
+    { id: "c9d4e7f2", agent: "System", task: "Health check", status: "Success", time: "10:23:40", duration: "45ms" },
+    { id: "b1a6c3d5", agent: "Agent-2", task: "Data validation", status: "Failed", time: "10:23:38", duration: "234ms" },
+    { id: "f8e2d9a7", agent: "Agent-1", task: "Memory cleanup", status: "Success", time: "10:23:35", duration: "67ms" },
+  ]);
+});
 
 // AI SDK Chat Endpoint
 app.post("/api/chat", async (req, res) => {
@@ -197,19 +218,14 @@ app.get("/api/chat/:id", async (req, res) => {
 
 // Fetch Activity Logs
 app.get("/api/activity-logs", async (req, res) => {
-  try {
-    // Assuming user validation via headers or session; for now fetch top 10
-    const logs = await prisma.activityLog.findMany({
-      take: 10,
-      orderBy: {
-        timestamp: "desc",
-      },
-    });
-    res.json(logs);
-  } catch (error) {
-    console.error("Error fetching activity logs:", error);
-    res.status(500).json({ error: "Failed to fetch activity logs" });
-  }
+  const mockLogs = [
+    { id: "a7b3c9d1", agent: "Agent-1", task: "Task execution complete", status: "Success", time: "10:23:45", duration: "125ms" },
+    { id: "e2f5a8b4", agent: "Agent-3", task: "Processing request", status: "Running", time: "10:23:42", duration: "89ms" },
+    { id: "c9d4e7f2", agent: "System", task: "Health check", status: "Success", time: "10:23:40", duration: "45ms" },
+    { id: "b1a6c3d5", agent: "Agent-2", task: "Data validation", status: "Failed", time: "10:23:38", duration: "234ms" },
+    { id: "f8e2d9a7", agent: "Agent-1", task: "Memory cleanup", status: "Success", time: "10:23:35", duration: "67ms" },
+  ];
+  res.json(mockLogs);
 });
 
 // AI Suggestions Endpoint

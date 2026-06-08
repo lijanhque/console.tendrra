@@ -15,8 +15,7 @@ import {
   BarChart3,
   Cpu,
   ArrowUpRight,
-  ListFilter,
-  MoreHorizontal
+  ListFilter
 } from "lucide-react";
 
 /* ─── Recharts-based chart component ─── */
@@ -145,57 +144,64 @@ function Metric({
   );
 }
 
-export default function DashboardPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+function DashboardLoading() {
+  return (
+    <div className="min-h-screen bg-[#050507] flex items-center justify-center">
+      <div className="h-10 w-10 rounded-full border-4 border-white/10 border-t-white animate-spin" />
+    </div>
+  );
+}
+
+function DashboardContent({ user }: { user: any }) {
+  const [agentLogs, setAgentLogs] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState({
+    activeAgents: 0,
+    workflowsLive: 0,
+    currentTasks: 0,
+    systemHealth: "0%",
+  });
+  const [logsLoading, setLogsLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/login");
-  }, [user, loading, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#050507] flex items-center justify-center">
-        <div className="h-10 w-10 rounded-full border-4 border-white/10 border-t-white animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user) return null;
-
-  const chartData = [
-    { day: "Mon", value: 65 },
-    { day: "Tue", value: 45 },
-    { day: "Wed", value: 85 },
-    { day: "Thu", value: 35 },
-    { day: "Fri", value: 95 },
-    { day: "Sat", value: 75 },
-    { day: "Sun", value: 55 },
-  ];
-
-  const [agentLogs, setAgentLogs] = useState([
-    { id: "TX-902", agent: "Lead Qualifier", task: "CRM Data Enrichment", status: "Success", time: "2m ago", duration: "1.2s" },
-    { id: "TX-901", agent: "Market Scout", task: "Competitor Price Scan", status: "Running", time: "5m ago", duration: "---" },
-    { id: "TX-900", agent: "Blog Writer", task: "Drafting: AI Trends 2026", status: "Pending", time: "12m ago", duration: "---" },
-  ]);
-
-  useEffect(() => {
-    fetch("http://localhost:3001/api/activity-logs")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mappedLogs = data.map((log: any) => ({
-            id: log.id.substring(0, 8),
-            agent: "Agentic Interface",
-            task: log.description || log.actionType,
-            status: "Success",
-            time: new Date(log.createdAt).toLocaleTimeString(),
-            duration: "N/A"
-          }));
-          setAgentLogs(mappedLogs);
+    let cancelled = false;
+    const controller = new AbortController();
+    fetch("/api/activity-logs", { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) {
+          setAgentLogs(data);
+          setLogsLoading(false);
         }
       })
-      .catch(err => console.error("Error fetching activity logs", err));
+      .catch((err) => {
+        if (err.name !== "AbortError" && !cancelled) {
+          console.error("Failed to fetch activity logs:", err);
+          setLogsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    setChartData([
+      { day: "Mon", value: 45 },
+      { day: "Tue", value: 52 },
+      { day: "Wed", value: 48 },
+      { day: "Thu", value: 61 },
+      { day: "Fri", value: 55 },
+      { day: "Sat", value: 67 },
+      { day: "Sun", value: 72 },
+    ]);
+    setMetrics({
+      activeAgents: 12,
+      workflowsLive: 8,
+      currentTasks: 24,
+      systemHealth: "98.5%",
+    });
   }, []);
 
   return (
@@ -232,10 +238,34 @@ export default function DashboardPage() {
 
         {/* ── Top Metrics Row ── */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label="Active Agents" value="18" delta="+2.4%" icon={Bot} color="text-blue-400" />
-          <Metric label="Workflows Live" value="24" delta="Stable" icon={ClipboardList} color="text-emerald-400" />
-          <Metric label="Current Tasks" value="42" delta="+12" icon={Play} color="text-amber-400" />
-          <Metric label="System Health" value="99.9%" delta="Optimal" icon={Activity} color="text-purple-400" />
+          <Metric 
+            label="Active Agents" 
+            value={metrics.activeAgents.toString()} 
+            delta={`+${Math.max(0, Math.floor(Math.random() * 5))} this week`} 
+            icon={Bot} 
+            color="text-blue-400" 
+          />
+          <Metric 
+            label="Workflows Live" 
+            value={metrics.workflowsLive.toString()} 
+            delta="Stable" 
+            icon={ClipboardList} 
+            color="text-emerald-400" 
+          />
+          <Metric 
+            label="Current Tasks" 
+            value={metrics.currentTasks.toString()} 
+            delta={`+${Math.floor(Math.random() * 8)}`} 
+            icon={Play} 
+            color="text-amber-400" 
+          />
+          <Metric 
+            label="System Health" 
+            value={metrics.systemHealth} 
+            delta="Optimal" 
+            icon={Activity} 
+            color="text-purple-400" 
+          />
         </div>
 
         {/* ── Main Layout (Non-Bento) ── */}
@@ -283,14 +313,21 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
                   <BarChart3 className="h-4 w-4 text-emerald-400" /> Success Rate
                 </div>
-                <span className="text-sm font-bold text-emerald-400">98.2%</span>
+                <span className="text-sm font-bold text-emerald-400">
+                  {agentLogs.filter(log => log.status === 'Success').length > 0 
+                    ? `${Math.round((agentLogs.filter(log => log.status === 'Success').length / agentLogs.length) * 100)}%` 
+                    : '98%'}
+                </span>
               </div>
               <div className="flex gap-1.5 h-1.5">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className={`flex-1 rounded-full ${i < 8 ? 'bg-emerald-500' : 'bg-white/5'}`} />
+                  <div 
+                    key={i} 
+                    className={`flex-1 rounded-full ${i <= 7 ? 'bg-emerald-500' : 'bg-white/5'}`} 
+                  />
                 ))}
               </div>
-              <p className="text-[10px] text-slate-600 mt-4 uppercase tracking-widest font-bold text-center">Avg precision over 30d</p>
+              <p className="text-[10px] text-slate-600 mt-4 uppercase tracking-widest font-bold text-center">Based on recent activities</p>
             </GlassCard>
           </div>
         </div>
@@ -326,36 +363,53 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 font-medium">
-                {agentLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-6 py-4 font-mono text-[10px] text-slate-500">{log.id}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-6 w-6 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-                          <Bot className="h-3.5 w-3.5 text-blue-400" />
-                        </div>
-                        <span className="text-white font-bold">{log.agent}</span>
+                {logsLoading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 rounded-full border-2 border-white/10 border-t-white animate-spin" />
+                        <span>Loading activity logs...</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-300 font-normal">{log.task}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 font-bold uppercase tracking-tighter text-[10px] ${
-                        log.status === 'Success' ? 'text-emerald-500' : 
-                        log.status === 'Running' ? 'text-blue-500' :
-                        log.status === 'Failed' ? 'text-rose-500' : 'text-amber-500'
-                      }`}>
-                        <div className={`h-1 w-1 rounded-full ${
-                          log.status === 'Success' ? 'bg-emerald-500' : 
-                          log.status === 'Running' ? 'bg-blue-500 animate-pulse' :
-                          log.status === 'Failed' ? 'bg-rose-500' : 'bg-amber-500'
-                        }`} />
-                        {log.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-[10px] text-slate-500">{log.duration}</td>
-                    <td className="px-6 py-4 text-right text-slate-500 group-hover:text-slate-300 transition-colors">{log.time}</td>
                   </tr>
-                ))}
+                ) : agentLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                      No activity logs available yet
+                    </td>
+                  </tr>
+                ) : (
+                  agentLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-6 py-4 font-mono text-[10px] text-slate-500">{log.id}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-6 w-6 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                            <Bot className="h-3.5 w-3.5 text-blue-400" />
+                          </div>
+                          <span className="text-white font-bold">{log.agent}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-300 font-normal">{log.task}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 font-bold uppercase tracking-tighter text-[10px] ${
+                          log.status === 'Success' ? 'text-emerald-500' : 
+                          log.status === 'Running' ? 'text-blue-500' :
+                          log.status === 'Failed' ? 'text-rose-500' : 'text-amber-500'
+                        }`}>
+                          <div className={`h-1 w-1 rounded-full ${
+                            log.status === 'Success' ? 'bg-emerald-500' : 
+                            log.status === 'Running' ? 'bg-blue-500 animate-pulse' :
+                            log.status === 'Failed' ? 'bg-rose-500' : 'bg-amber-500'
+                          }`} />
+                          {log.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-mono text-[10px] text-slate-500">{log.duration}</td>
+                      <td className="px-6 py-4 text-right text-slate-500 group-hover:text-slate-300 transition-colors">{log.time}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -370,4 +424,25 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+}
+
+export default function DashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  if (loading) {
+    return <DashboardLoading />;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return <DashboardContent user={user} />;
 }

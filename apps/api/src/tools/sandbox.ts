@@ -2,10 +2,18 @@ import { tool } from "ai";
 import { z } from "zod";
 import { Daytona } from "@daytonaio/sdk";
 
-// Initialize Daytona client
-const daytona = new Daytona({
-  apiKey: process.env.DAYTONA_API_KEY || "",
-});
+let daytonaInstance: Daytona | null = null;
+
+function getDaytona(): Daytona {
+  if (!daytonaInstance) {
+    const apiKey = process.env.DAYTONA_API_KEY;
+    if (!apiKey) {
+      throw new Error("DAYTONA_API_KEY is not set");
+    }
+    daytonaInstance = new Daytona({ apiKey });
+  }
+  return daytonaInstance;
+}
 
 export const sandboxTool = tool({
   description: "Execute code or shell commands in a secure Daytona sandbox. Use this for complex logic, data processing, or building software artifacts. The environment is isolated and powerful.",
@@ -17,9 +25,9 @@ export const sandboxTool = tool({
   }),
   execute: async ({ mode, language, content, title }) => {
     console.log(`🚀 [Daytona] Executing ${mode}${language ? ` (${language})` : ""}...`);
-    
+
     try {
-      // Create a sandbox
+      const daytona = getDaytona();
       const sandbox = await daytona.create({
         language: language === "python" ? "python" : "typescript",
       });
@@ -35,7 +43,6 @@ export const sandboxTool = tool({
             title,
           };
         } else {
-          // Execute command
           const proc = await sandbox.process.executeCommand(content);
           result = {
             success: proc.exitCode === 0,
@@ -53,7 +60,6 @@ export const sandboxTool = tool({
           title,
         };
       } finally {
-        // Cleanup sandbox after execution
         await sandbox.delete();
       }
     } catch (outerError: any) {

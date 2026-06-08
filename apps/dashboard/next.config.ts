@@ -1,18 +1,20 @@
 import type { NextConfig } from "next";
-import { withMicrofrontends } from "@vercel/microfrontends/next/config";
 
 const nextConfig: NextConfig = {
- distDir: '.next',
- typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
+  distDir: '.next',
+  typescript: {
+    ignoreBuildErrors: false,
   },
-  turbopack: {
-
+  rewrites: async () => {
+    return {
+      beforeFiles: [
+        {
+          source: '/api/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/:path*`,
+        },
+      ],
+    };
   },
 };
 
-export default withMicrofrontends(nextConfig);
+export default nextConfig;

@@ -33,7 +33,7 @@ const galleryItems = [
   {
     title: "Market Intelligence",
     desc: "Deep-web research platform powered by Exa AI.",
-    img: "/research_platform_poster_1778158617807.png",
+    img: "https://9a9acjnyu4udzabn.private.blob.vercel-storage.com/public/Generated%20Image%20June%2008%2C%202026%20-%2012_31PM%20%281%29.png",
     category: "Research"
   },
 ];
@@ -110,7 +110,7 @@ export function LandingHero() {
                 header={
                   <div className="flex flex-1 w-full h-full min-h-[10rem] rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative group/image">
                     <img
-                      src={item.img}
+                      src={item.img.src}
                       alt={item.title}
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover/image:scale-105"
                     />

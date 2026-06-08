@@ -2,36 +2,13 @@ import { Router } from "express";
 
 const router = Router();
 
-// Mock in-memory storage for testing
-let mockTasks: any[] = [
-  {
-    id: 'task-1',
-    title: 'Sample Task 1',
-    description: 'This is a sample task for testing',
-    status: 'TODO',
-    priority: 'HIGH',
-    dueDate: new Date('2024-12-31'),
-    assigneeId: 'user-123',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: 'task-2',
-    title: 'Sample Task 2',
-    description: 'Another sample task',
-    status: 'IN_PROGRESS',
-    priority: 'MEDIUM',
-    dueDate: null,
-    assigneeId: 'user-456',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
-];
+// In-memory task storage (will be replaced by database)
+let tasks: any[] = [];
 
 router.get("/", async (req, res) => {
   const { userId, status } = req.query;
 
-  let filteredTasks = mockTasks;
+  let filteredTasks = tasks;
 
   if (userId) {
     filteredTasks = filteredTasks.filter(task => task.assigneeId === userId);
@@ -62,7 +39,7 @@ router.post("/", async (req, res) => {
     updatedAt: new Date(),
   };
 
-  mockTasks.push(newTask);
+  tasks.push(newTask);
   res.status(201).json(newTask);
 });
 
@@ -70,30 +47,30 @@ router.patch("/:id", async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
 
-  const taskIndex = mockTasks.findIndex(task => task.id === id);
+  const taskIndex = tasks.findIndex(task => task.id === id);
   if (taskIndex === -1) {
     return res.status(404).json({ error: 'Task not found' });
   }
 
   // Update the task
-  mockTasks[taskIndex] = {
-    ...mockTasks[taskIndex],
+  tasks[taskIndex] = {
+    ...tasks[taskIndex],
     ...updates,
     updatedAt: new Date(),
   };
 
-  res.json(mockTasks[taskIndex]);
+  res.json(tasks[taskIndex]);
 });
 
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
 
-  const taskIndex = mockTasks.findIndex(task => task.id === id);
+  const taskIndex = tasks.findIndex(task => task.id === id);
   if (taskIndex === -1) {
     return res.status(404).json({ error: 'Task not found' });
   }
 
-  mockTasks.splice(taskIndex, 1);
+  tasks.splice(taskIndex, 1);
   res.status(204).send();
 });
 
