@@ -28,7 +28,7 @@ import { authenticate } from "./middleware/auth.js";
 import { registerJobHandler } from "./lib/job-queue.js";
 import { executeWorkflow } from "./lib/workflow-engine.js";
 import { executeAgentTask } from "./lib/agent-runner.js";
-import { deepResearch } from "./lib/parallel.js";
+
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -66,14 +66,10 @@ registerJobHandler("WORKFLOW_EXECUTION", async (payload) => {
 });
 
 registerJobHandler("AGENT_TASK", async (payload) => {
-  return await executeAgentTask(payload.agentId, payload.task);
-});
+   return await executeAgentTask(payload.agentId, payload.task);
+ });
 
-registerJobHandler("DEEP_RESEARCH", async (payload) => {
-  return await deepResearch(payload.objective);
-});
-
-// Middleware
+ // Middleware
 app.use(cors({
   origin: [
     "http://localhost:3024",
