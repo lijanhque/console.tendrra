@@ -18,10 +18,6 @@ import {
   PromptInputTextarea,
   PromptInputTools,
   PromptInputButton,
-  PromptInputActionMenu,
-  PromptInputActionMenuTrigger,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuItem,
   PromptInputBody,
   PromptInputFooter,
   PromptInputActionAddAttachments,
@@ -49,20 +45,11 @@ import {
 } from "@/components/ai-elements/tool";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DefaultChatTransport, isToolUIPart } from "ai";
-import {
-  GlobeIcon,
-  MessageSquareIcon,
-  PaperclipIcon,
-  WrenchIcon,
-  LayersIcon,
-  PlusIcon,
-  PuzzleIcon,
-  BotIcon,
-} from "lucide-react";
+import { GlobeIcon, MessageSquareIcon, PaperclipIcon, WrenchIcon, LayersIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 
-export default function ChatPage() {
+export default function DashboardChatPage() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -143,7 +130,7 @@ export default function ChatPage() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-screen flex-col">
+      <div className="flex h-[calc(100vh-8rem)] flex-col">
         <Conversation className="flex-1">
           <ConversationContent>
             {messages.length === 0 ? (
@@ -210,49 +197,30 @@ export default function ChatPage() {
               <PromptInputBody>
                 <PromptInputTextarea placeholder="Type your message..." className="min-h-[3rem]" />
                 <Attachments>
-                      {messages.map((message) =>
-                        message.parts
-                          .filter((p) => p.type === "file")
-                          .map((part, i) => (
-                            <Attachment
-                              data={part as any}
-                              key={`${message.id}-file-${i}`}
-                            >
-                              <AttachmentPreview />
-                              <AttachmentInfo />
-                              <AttachmentRemove />
-                            </Attachment>
-                          ))
-                      )}
-                    </Attachments>
-                  </PromptInputBody>
+                  {messages.map((message) =>
+                    message.parts
+                      .filter((p) => p.type === "file")
+                      .map((part, i) => (
+                        <Attachment
+                          data={part as any}
+                          key={`${message.id}-file-${i}`}
+                        >
+                          <AttachmentPreview />
+                          <AttachmentInfo />
+                          <AttachmentRemove />
+                        </Attachment>
+                      ))
+                  )}
+                </Attachments>
+              </PromptInputBody>
               <PromptInputFooter>
                 <PromptInputTools>
                   <PromptInputButton tooltip="Web Search Available">
                     <GlobeIcon size={16} />
                   </PromptInputButton>
-                  <PromptInputButton tooltip="Agent Swarm Tools">
-                    <BotIcon size={16} />
+                  <PromptInputButton tooltip="Tools & Connectors">
+                    <WrenchIcon size={16} />
                   </PromptInputButton>
-                  <PromptInputActionMenu>
-                    <PromptInputActionMenuTrigger tooltip="More options">
-                      <PlusIcon size={16} />
-                    </PromptInputActionMenuTrigger>
-                    <PromptInputActionMenuContent>
-                      <PromptInputActionMenuItem onSelect={() => {}}>
-                        <PaperclipIcon className="mr-2 size-4" />
-                        Attachments
-                      </PromptInputActionMenuItem>
-                      <PromptInputActionMenuItem onSelect={() => {}}>
-                        <PuzzleIcon className="mr-2 size-4" />
-                        Connectors
-                      </PromptInputActionMenuItem>
-                      <PromptInputActionMenuItem onSelect={() => {}}>
-                        <LayersIcon className="mr-2 size-4" />
-                        MCP
-                      </PromptInputActionMenuItem>
-                    </PromptInputActionMenuContent>
-                  </PromptInputActionMenu>
                 </PromptInputTools>
                 <PromptInputSubmit status={status} onStop={stop} />
               </PromptInputFooter>

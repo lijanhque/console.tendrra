@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  BarChart3, Bot, Cloud, Database, Code, Settings, 
+import {
+  BarChart3, Bot, Cloud, Database, Code, Settings,
   Zap, LogOut, Terminal, LayoutDashboard, Search, Activity,
-  ShieldCheck, MessageSquare
+  ShieldCheck, MessageSquare, PanelLeftOpen
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -25,7 +25,7 @@ const navItems = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "Cloud", href: "/dashboard/cloud", icon: Cloud },
   { name: "AI Agents", href: "/dashboard/agents", icon: Bot },
-  { name: "Sales Hub", href: "/dashboard/chat", icon: MessageSquare },
+  { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
   { name: "Tasks", href: "/dashboard/tasks", icon: Database }, // Using Database for tasks as a repository
   { name: "Research", href: "/dashboard/research", icon: Search },
   { name: "Production Zone", href: "/dashboard/research/production", icon: ShieldCheck },

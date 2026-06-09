@@ -110,7 +110,7 @@ export function LandingHero() {
                 header={
                   <div className="flex flex-1 w-full h-full min-h-[10rem] rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative group/image">
                     <img
-                      src={item.img.src}
+                      src={item.img}
                       alt={item.title}
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover/image:scale-105"
                     />
