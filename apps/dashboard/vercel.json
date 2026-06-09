@@ -1,17 +1,12 @@
 {
-  "builds": [
-    {
-      "src": "apps/dashboard/package.json",
-      "use": "@vercel/next",
-      "config": { "outputDirectory": ".next" }
+  "experimentalServices": {
+    "dashboard": {
+      "entrypoint": "apps/dashboard",
+      "routePrefix": "/"
     },
-    {
-      "src": "apps/api/package.json",
-      "use": "@vercel/node"
+    "api": {
+      "entrypoint": "apps/api",
+      "routePrefix": "/api"
     }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/apps/api" },
-    { "src": "/(.*)", "dest": "/apps/dashboard" }
-  ]
+  }
 }
