@@ -4,7 +4,7 @@ dotenv.config({ path: ".env.local", override: true });
 import express from "express";
 import cors from "cors";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { convertToModelMessages, generateText, smoothStream, stepCountIs, streamText } from "ai";
+import { convertToModelMessages, extractReasoningMiddleware, generateText, pipeUIMessageStreamToResponse, smoothStream, stepCountIs, streamText, wrapLanguageModel } from "ai";
 import { webSearch } from "@exalabs/ai-sdk";
 
 const __filename = new URL(import.meta.url).pathname;
@@ -34,8 +34,13 @@ app.post("/api/chat", async (req, res) => {
   try {
     const coreMessages = await convertToModelMessages(messages);
 
-    const result = streamText({
+    const wrappedModel = wrapLanguageModel({
       model: openrouter.chat("openai/gpt-4o-mini"),
+      middleware: extractReasoningMiddleware({ tagName: "thought" }),
+    });
+
+    const result = streamText({
+      model: wrappedModel,
       messages: coreMessages,
       system:
         "You are a helpful AI assistant for WorldAutomate — an enterprise automation platform. " +
@@ -44,35 +49,22 @@ app.post("/api/chat", async (req, res) => {
         "CRITICAL: Always keep your output with current, up-to-date data. If asked about recent events, companies, or anything time-sensitive, ALWAYS use the webSearch tool to retrieve the latest information rather than relying on your training data. " +
         "Before answering, you must ALWAYS think step-by-step and write your internal reasoning inside <thought> and </thought> XML tags. After the </thought> tag, provide your final response to the user. " +
         "Be concise, helpful, and proactive. When you use tools, explain what you are doing and summarize the results clearly.",
-        experimental_transform: smoothStream({
-              delayInMs: 20, // optional: defaults to 10ms
-                  chunking: 'word', // optional: defaults to 'word'
-        }),
-      
+      experimental_transform: smoothStream({
+        delayInMs: 20,
+        chunking: 'word',
+      }),
       tools: {
         webSearch: webSearch(),
       },
       stopWhen: stepCountIs(5),
     });
 
-    const webResponse = result.toUIMessageStreamResponse({
-      originalMessages: messages,
+    pipeUIMessageStreamToResponse({
+      response: res,
+      stream: result.toUIMessageStream({ originalMessages: messages }),
     });
 
     result.consumeStream();
-
-    if (webResponse.headers) {
-      webResponse.headers.forEach((value, key) => {
-        res.setHeader(key, value);
-      });
-    }
-
-    import("stream").then(({ Readable }) => {
-      if (webResponse.body) {
-        Readable.fromWeb(webResponse.body as any).pipe(res);
-      }
-    });
-
   } catch (error) {
     console.error("AI Chat Error:", error);
     res.status(500).json({ error: "Failed to process AI request" });

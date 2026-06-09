@@ -130,68 +130,75 @@ export default function DashboardChatPage() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-[calc(100vh-8rem)] flex-col">
-        <Conversation className="flex-1">
-          <ConversationContent>
-            {messages.length === 0 ? (
-              <ConversationEmptyState
-                description="Send a message to start the conversation."
-                icon={<MessageSquareIcon className="size-6" />}
-                title="Welcome to Chat"
-              />
-            ) : (
-              <>
-                {messages.map((message) => (
-                  <Message from={message.role} key={message.id}>
-                    <MessageContent>
-                      {message.parts.map((part, i) => {
-                        switch (part.type) {
-                          case "text":
-                            return (
-                              <MessageResponse key={`${message.id}-${i}`}>
-                                {part.text}
-                              </MessageResponse>
-                            );
-                          case "reasoning":
-                            return (
-                              <Reasoning
-                                key={`${message.id}-${i}`}
-                                isStreaming={part.state === "streaming"}
-                              >
-                                <ReasoningTrigger />
-                                <ReasoningContent>{part.text}</ReasoningContent>
-                              </Reasoning>
-                            );
-                          default:
-                            if (isToolUIPart(part)) {
-                              return renderTool(part, message.id, i);
-                            }
-                            return null;
-                        }
-                      })}
-                    </MessageContent>
-                  </Message>
-                ))}
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="mt-4">
-                    <Suggestions>
-                      {suggestions.map((suggestion, idx) => (
-                        <Suggestion
-                          key={`suggestion-${idx}`}
-                          suggestion={suggestion}
-                          onClick={handleSuggestionClick}
-                        />
-                      ))}
-                    </Suggestions>
-                  </div>
-                )}
-              </>
-            )}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
+      <div className="flex h-[calc(100vh-8rem)] min-h-0 flex-col">
+        <div className="shrink-0 mb-4 flex items-center gap-3">
+          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+            GPT-4o Mini (OpenRouter)
+          </span>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <Conversation className="h-full" initial="smooth" resize="smooth">
+            <ConversationContent>
+              {messages.length === 0 ? (
+                <ConversationEmptyState
+                  description="Send a message to start the conversation."
+                  icon={<MessageSquareIcon className="size-6" />}
+                  title="Welcome to Chat"
+                />
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <Message from={message.role} key={message.id}>
+                      <MessageContent>
+                        {message.parts.map((part, i) => {
+                          switch (part.type) {
+                            case "text":
+                              return (
+                                <MessageResponse key={`${message.id}-${i}`}>
+                                  {part.text}
+                                </MessageResponse>
+                              );
+                            case "reasoning":
+                              return (
+                                <Reasoning
+                                  key={`${message.id}-${i}`}
+                                  isStreaming={part.state === "streaming"}
+                                >
+                                  <ReasoningTrigger />
+                                  <ReasoningContent>{part.text}</ReasoningContent>
+                                </Reasoning>
+                              );
+                            default:
+                              if (isToolUIPart(part)) {
+                                return renderTool(part, message.id, i);
+                              }
+                              return null;
+                          }
+                        })}
+                      </MessageContent>
+                    </Message>
+                  ))}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="mt-4">
+                      <Suggestions>
+                        {suggestions.map((suggestion, idx) => (
+                          <Suggestion
+                            key={`suggestion-${idx}`}
+                            suggestion={suggestion}
+                            onClick={handleSuggestionClick}
+                          />
+                        ))}
+                      </Suggestions>
+                    </div>
+                  )}
+                </>
+              )}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+        </div>
 
-        <div className="border-t border-white/10 bg-[#0a0a0a] p-4">
+        <div className="shrink-0 border-t border-white/10 bg-[#0a0a0a] p-4">
           <PromptInputProvider>
             <PromptInput className="w-full" onSubmit={handleSubmit}>
               <PromptInputBody>
